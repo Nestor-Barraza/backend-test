@@ -2,6 +2,7 @@
 
 var _interopRequireDefault = require("@babel/runtime/helpers/interopRequireDefault");
 var _index = _interopRequireDefault(require("../../Domain/index"));
+var _constants = require("../../../../utils/constants");
 //Edit product
 module.exports = async ({
   body: {
@@ -10,8 +11,13 @@ module.exports = async ({
     price,
     unitsAvailable,
     id
+  },
+  user: {
+    role
   }
 }, res) => {
+  //Roles permission
+  if (role !== "admin") return res.status(401).send(_constants.ACCESS_DENIED);
   if (!title || !description || !price || !unitsAvailable || !id) {
     return res.status(400).json({
       message: "You can not update leaving fields empty",
@@ -19,19 +25,25 @@ module.exports = async ({
     });
   } else {
     try {
-      const newProduct = await _index.default.findByIdAndUpdate(id, {
-        title,
-        description,
-        price,
-        unitsAvailable
-      }, {
-        new: true
+      //Update
+      const getProduct = await _index.default.find({
+        _id: id
       });
-      if (newProduct) {
-        return res.json({
-          message: "Product successfully updated",
-          code: "UPDATE_SUCCESSFULL"
+      if (getProduct) {
+        const newProduct = await _index.default.updateOne({
+          _id: id
+        }, {
+          title,
+          description,
+          price,
+          unitsAvailable
         });
+        if (newProduct) {
+          return res.json({
+            message: "Product successfully updated",
+            code: "UPDATE_SUCCESSFULL"
+          });
+        }
       }
     } catch ({
       name,

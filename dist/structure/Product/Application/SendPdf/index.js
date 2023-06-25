@@ -21,8 +21,13 @@ const {
 module.exports = async ({
   body: {
     email
+  },
+  user: {
+    role
   }
 }, res) => {
+  //Roles permission
+  if (role !== "admin") return res.status(401).send(_constants.ACCESS_DENIED);
   //Find all products
   const products = await _Domain.default.find({});
   if (products) {
